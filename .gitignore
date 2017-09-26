@@ -1,0 +1,9 @@
+# Created by .ignore support plugin (hsz.mobi)
+.credentials/
+.gitignore
+.idea/
+HelloWorldBot.iml
+botSettings.json
+client_secret.json
+node_modules/
+package-lock.json
