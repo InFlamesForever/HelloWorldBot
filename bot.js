@@ -20,8 +20,8 @@ const Match = require('./classes/match');
 
 //get bot settings e.g. token, prefix, etc and assign to local variables
 //********************************************************************************************************
-const botToken = botSettings.token;
-const botAPIKey = botSettings.API_KEY;
+const botToken = tokens.token;
+const botAPIKey = tokens.API_KEY;
 const botPrefix = botSettings.prefix;
 const botAnnounceCooldown = botSettings.announceCooldown;
 const debug = botSettings.debug;
