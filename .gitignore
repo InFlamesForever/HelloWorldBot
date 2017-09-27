@@ -3,7 +3,7 @@
 .gitignore
 .idea/
 HelloWorldBot.iml
-botSettings.json
+tokens.json
 client_secret.json
 node_modules/
 package-lock.json

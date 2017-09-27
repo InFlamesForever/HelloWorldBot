@@ -1,0 +1,12 @@
+{
+  "prefix" : "!",
+  "debug" : true,
+  "announceCooldown" : 60,
+  "SetupChannel" : "🎮 10 Man Lobby",
+  "Team1Channel" : "💠 COG",
+  "Team2Channel" : "🔺 Swarm",
+  "PlayersRequiredToMatchmake" : 10,
+  "EveryoneCommandLastUsed" : "2017-09-11T18:27:39.113Z",
+  "testvar" : "abs",
+  "voteTimeout": 40000
+}

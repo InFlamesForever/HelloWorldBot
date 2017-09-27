@@ -9,6 +9,7 @@ const vision = require('node-cloud-vision-api'); // npm install node-cloud-visio
 //import local config files
 //********************************************************************************************************
 const botSettings = require('./botSettings.json');
+const tokens = require('./tokens.json');
 const authentication = require("./authentication");
 const botFunctions = require("./botFunctions.js");
 
