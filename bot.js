@@ -11,7 +11,7 @@ const vision = require('node-cloud-vision-api'); // npm install node-cloud-visio
 const botSettings = require('./botSettings.json');
 const tokens = require('./tokens.json');
 const authentication = require("./authentication");
-const botFunctions = require("./botFunctions.js");
+const spreadsheetFunctions = require("./spreadsheetFunctions.js");
 
 const Player = require('./classes/player');
 const Team = require('./classes/team');
@@ -29,7 +29,7 @@ const debug = botSettings.debug;
 const setupChannelName = botSettings.SetupChannel;
 const team1ChannelName = botSettings.Team1Channel;
 const team2ChannelName = botSettings.Team2Channel;
-const PlayersRequiredToMatchmake = botSettings.PlayersRequiredToMatchmake;
+const playersRequiredToMatchmake = botSettings.PlayersRequiredToMatchmake;
 
 const votingTimout = botSettings.voteTimeout;
 
@@ -103,7 +103,7 @@ bot.on
                                 },
                                 {
                                     name: '!MakeTeams',
-                                    value: 'Bot generates 5 balanced teams once there are ' + PlayersRequiredToMatchmake + ' players in the **' + setupChannelName + '** voice channel. If there are dropouts AFTER the command is executed, simply execute again to make teams using the latest 10 mans.'
+                                    value: 'Bot generates 5 balanced teams once there are ' + playersRequiredToMatchmake + ' players in the **' + setupChannelName + '** voice channel. If there are dropouts AFTER the command is executed, simply execute again to make teams using the latest 10 mans.'
                                 },
                                 {
                                     name: '!Vote <Result #>',
@@ -175,14 +175,14 @@ bot.on
                     //get number of players in 10 Man Setup voice channel and then minus it from 10. Show this value in the output.
                     let players = getPlayersFromSetupChannel();
 
-                    if(players.length >= PlayersRequiredToMatchmake)
+                    if(players.length >= playersRequiredToMatchmake)
                     {
                         msg.channel.send('' + setupChannelName+ ' is full. You can not use this command.');
                     }
                     else
                     {
                         //Announce a message to @everyone
-                        msg.channel.send('@everyone We need '+ (PlayersRequiredToMatchmake-players.length) +' more players, please join the ' + setupChannelName+ ' voice channel. Thanks ' + msg.author.username);
+                        msg.channel.send('@everyone We need '+ (playersRequiredToMatchmake-players.length) +' more players, please join the ' + setupChannelName+ ' voice channel. Thanks ' + msg.author.username);
 
                         lastAnnouncementMade = moment();
                     }
@@ -204,14 +204,14 @@ bot.on
 
                 let players = getPlayersFromSetupChannel();
 
-                if(players.length <PlayersRequiredToMatchmake)
+                if(players.length <playersRequiredToMatchmake)
                 {
-                    msg.reply('\nNot enough players in **' + setupChannelName+ '** voice channel. \nWait for ' + (PlayersRequiredToMatchmake-players.length) + ' more to join and then !MakeTeams.');
+                    msg.reply('\nNot enough players in **' + setupChannelName+ '** voice channel. \nWait for ' + (playersRequiredToMatchmake-players.length) + ' more to join and then !MakeTeams.');
                     return;
                 }
-                else if (players.length >PlayersRequiredToMatchmake)
+                else if (players.length >playersRequiredToMatchmake)
                 {
-                    msg.reply('\nToo many players in **' + setupChannelName+ '** voice channel. \nWait for ' + (players.length-PlayersRequiredToMatchmake) + ' more to leave and then !MakeTeams.');
+                    msg.reply('\nToo many players in **' + setupChannelName+ '** voice channel. \nWait for ' + (players.length-playersRequiredToMatchmake) + ' more to leave and then !MakeTeams.');
                     return;
                 }
                 //get all 10 players from 10 Man Setup voice channel
@@ -221,7 +221,7 @@ bot.on
                 //push players as parameter into google api
                 authentication.authenticate().then((auth)=>
                 {
-                    botFunctions.sendPlayerIDsToGoogleSheets(auth, playerIds);
+                    spreadsheetFunctions.sendPlayerIDsToGoogleSheets(auth, playerIds);
                 });
 
 
@@ -235,7 +235,7 @@ bot.on
                 authentication.authenticate().then(async (auth)=>
                 {
                     let out = '';
-                    rows = await botFunctions.fetchTeamsOutput(auth);
+                    rows = await spreadsheetFunctions.fetchTeamsOutput(auth);
                     for (let i = 0; i < rows.length; i++)
                     {
                         let row = rows[i];
@@ -276,7 +276,7 @@ bot.on
                 //call google api and get balanced teams array conataining UIDs to  process split teams, voting, etc
                 authentication.authenticate().then(async (auth)=>
                 {
-                    rows = await botFunctions.fetchTeamsArray(auth);
+                    rows = await spreadsheetFunctions.fetchTeamsArray(auth);
 
                     for (let i = 0; i < rows.length; i++)
                     {
@@ -520,9 +520,157 @@ bot.on
 
             //Start of command
             //********************************************************************************************************
-            else if (command === 'PLACEHOLDER1')
+            else if (command === 'MAKE')
             {
-                msg.reply('Command=' + command + ' param1=' + param1 + ' param2=' + param2 + ' param3=' + param3);
+                //will be an async command
+                //count number of players in the setup voice channel
+
+                let players = [
+                    ["240106095132147723"], //BROADBANNED
+                    ["254591454041604096"], //InFlamesForever
+                    ["165994107003600896"], //Toby Campbell
+                    ["109055610879770624"], //Refiya
+                    ["222168740136091649"], //Glickman
+                    ["254135467434311682"], //Alroytt
+                    ["222454850288484352"], //Khalid
+                    ["192297461748858880"], //Zlozz
+                    ["235751692686065664"], //Liam
+                    ["321766950000918539"] //Boot
+                ];//getPlayersFromSetupChannel();
+
+                if(players.length <playersRequiredToMatchmake)
+                {
+                    msg.reply('\nNot enough players in **' + setupChannelName+ '** voice channel. \nWait for ' + (playersRequiredToMatchmake-players.length) + ' more to join and then !MakeTeams.');
+                    return;
+                }
+                else if (players.length >playersRequiredToMatchmake)
+                {
+                    msg.reply('\nToo many players in **' + setupChannelName+ '** voice channel. \nWait for ' + (players.length-playersRequiredToMatchmake) + ' more to leave and then !MakeTeams.');
+                    return;
+                }
+
+                //Get the players
+                let rows;
+                try
+                {
+                    authentication.authenticate().then(async (auth)=>
+                    {
+                        rows = await spreadsheetFunctions.fetchPlayers(auth);
+                    });
+                }
+                catch (err)
+                {
+                    console.log(err);
+                    msg.reply("Looks like something went wrong, try again.")
+                    return;
+                }
+                //wait for something
+                sleep(2*1000); // sleep for 1 seconds
+
+                playersArr = [];
+
+                players.forEach(player =>
+                {
+                    let foundPlayer = undefined;
+                    rows.forEach(row =>
+                    {
+                        if(row[0] === player.toString())
+                        {
+                            foundPlayer = new Player(row[0], row[1], row[4], parseInt(row[2]))
+                        }
+                    });
+                    if(foundPlayer !== undefined)
+                    {
+                        playersArr.push(foundPlayer);
+                    }
+                });
+
+
+
+
+
+                let newPlayerArr = playersArr.slice();
+                let team1 = [];
+                let team2 = [];
+                for(let i = 0; i < playersRequiredToMatchmake; i++)
+                {
+                    let player = newPlayerArr.splice(findHighestScoredPlayer(newPlayerArr), 1)[0];
+
+                    if(team1.length === team2.length)
+                    {
+                        team1.push(player)
+                    }
+                    else
+                    {
+                        team2.push(player)
+                    }
+                }
+                let match = new Match(new Team(team1), new Team(team2));
+
+                const acceptableScoreDiff = 0;
+                let scoreDiff = match.getDelta();
+
+                let bestDiff;
+                let counter = 0;
+                do
+                {
+                    let posTeam1 = -1;
+                    let posTeam2 = -2;
+                    bestDiff = 100;
+
+                    for(let i = 0; i < team1.length; i++)
+                    {
+                        let breakLoop = false;
+                        for(let j = 0; j < team2.length; j++)
+                        {
+                            let team1New = [];
+                            let team2New = [];
+
+                            for(let t = 0; t < 5; t++)
+                            {
+                                 if(t === i)
+                                 {
+                                     team1New.push(match.getTeam2().getPlayers()[j])
+                                 }
+                                 else
+                                 {
+                                     team1New.push(match.getTeam1().getPlayers()[t])
+                                 }
+                                 if(t === j)
+                                 {
+                                     team2New.push(match.getTeam1().getPlayers()[i])
+                                 }
+                                 else
+                                 {
+                                     team2New.push(match.getTeam2().getPlayers()[t])
+                                 }
+                            }
+                            let tempMatch = new Match(new Team(team1New), new Team(team2New));
+
+                            if(match.getDelta() > tempMatch.getDelta())
+                            {
+                                match = tempMatch;
+                                breakLoop = true;
+                                break;
+                            }
+                        }
+
+                        if(breakLoop)
+                        {
+                            break
+                        }
+                    }
+                    counter++;
+                }
+                while(match.getDelta() > acceptableScoreDiff && counter < 100);
+                console.log("final scoredif " + match.getDelta());
+                console.log(match.getTeam1());
+                console.log(match.getTeam2());
+
+
+
+
+
             }
             //********************************************************************************************************
             //End of command
@@ -798,6 +946,30 @@ function finishVoting()
     }
 }
 
+/**
+ * Takes an array of Player objects, and finds the
+ * player with the highest score.
+ *
+ * @param playerArr an array of player objects
+ * @return the position in the array of the player with the
+ *          highest score
+ */
+function findHighestScoredPlayer(playerArr)
+{
+    let maxScore = -1;
+    let foundPlayerPos;
+
+    for(let i = 0; i < playerArr.length; i++)
+    {
+        if(playerArr[i].getPlayerScore() > maxScore)
+        {
+            maxScore = playerArr[i].getPlayerScore();
+            foundPlayerPos = i;
+        }
+    }
+    return foundPlayerPos;
+}
+
 //********************************************************************************************************
 //End of functions
 
@@ -809,7 +981,7 @@ function finishVoting()
 
 // Bot will now attempt to login
 //********************************************************************************************************
-console.log("about to login")
+console.log("about to login");
 try {bot.login(botToken);}
 catch (e) {console.log(e);}
 

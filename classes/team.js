@@ -8,9 +8,9 @@
  */
 module.exports = class team
 {
-    constructor(player1, player2, player3, player4, player5)
+    constructor(players)
     {
-        this.players = [player1, player2, player3, player4, player5];
+        this.players = players;
     }
 
     getTeamScore()

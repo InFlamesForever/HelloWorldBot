@@ -8,10 +8,11 @@
  */
 module.exports = class player
 {
-    constructor(id, discordTag, score)
+    constructor(id, discordTag, gamerTag, score)
     {
         this.id = id;
         this.discordTag = discordTag;
+        this.gamerTag = gamerTag;
         this.score = score;
         this.vote = 0;
     }
@@ -24,6 +25,11 @@ module.exports = class player
     getDiscordTag()
     {
         return this.discordTag;
+    }
+
+    getGamerTag()
+    {
+        return this.gamerTag;
     }
 
     getPlayerScore()
